@@ -1,0 +1,95 @@
+{
+  "id": "study-reminder",
+  "name": "复习提醒",
+  "version": "0.8.0",
+  "description": "学习提醒守护：定时检查到期复习题，系统通知触达（附最薄弱点），并可自动生成当日学习规划写入 sys-hub「小诺晨报/」。学习节奏配置权威（每日目标/考试冲刺），经宿主 studyRhythm API 供学习报告、题库页共用",
+  "usage": "让到期复习不被遗忘：\n1. 激活后自动守护：按检查间隔扫描到期题目，到期>0 且超出冷却时发系统通知（点击通知直达学习视图；免打扰时段内自动静默）。\n2. 托盘右键「立即检查复习提醒」或全局快捷键（默认 Ctrl+Alt+R，被占用自动降级备用键；实际生效键位见「设置 → 快捷键」）——不等间隔手动触发一次检查（不受免打扰限制）。\n3. 规划写入开启时，提醒触发会同时让小诺生成当日学习规划，写入 sys-hub「小诺晨报/规划-日期.md」。\n与晨报管家的关系：晨报管家管每日晨报；本插件管到期复习的主动触达与学习规划。",
+  "entry": "index.js",
+  "permissions": [
+    "db:read",
+    "notify",
+    "file:read",
+    "ai:chat",
+    "file:write",
+    "db:write"
+  ],
+  "contributions": [
+    {
+      "point": "tray.menu",
+      "action": "立即检查复习提醒",
+      "method": "checkNowFromTray"
+    },
+    {
+      "point": "shortcut.bind",
+      "key": "Ctrl+Alt+R",
+      "fallbacks": ["Ctrl+Alt+Shift+R"],
+      "action": "立即检查复习提醒",
+      "method": "checkNowFromTray"
+    }
+  ],
+  "configSchema": [
+    {
+      "key": "daily_goal",
+      "label": "每日目标（题）",
+      "type": "number",
+      "default": 10,
+      "description": "每天作答多少道题算达成目标（学习节奏权威配置）；学习报告页与对话报告经宿主 studyRhythm API 同用这份节奏感"
+    },
+    {
+      "key": "reminder_enabled",
+      "label": "学习提醒",
+      "type": "boolean",
+      "default": true,
+      "description": "定时检查到期复习题，到期时发系统通知（冷却期内不重复打扰）"
+    },
+    {
+      "key": "reminder_interval_minutes",
+      "label": "检查间隔（分钟）",
+      "type": "number",
+      "default": 30,
+      "description": "多久检查一次到期复习题"
+    },
+    {
+      "key": "reminder_cooldown_hours",
+      "label": "提醒冷却（小时）",
+      "type": "number",
+      "default": 4,
+      "description": "两次提醒之间的最小间隔，防止重复打扰"
+    },
+    {
+      "key": "reminder_quiet_hours",
+      "label": "免打扰时段",
+      "type": "string",
+      "default": "22:00-08:00",
+      "description": "该时段内自动提醒保持静默（跨天示例 22:00-08:00）；留空表示全天提醒。托盘/快捷键手动检查不受限"
+    },
+    {
+      "key": "plan_write_enabled",
+      "label": "提醒时生成学习规划",
+      "type": "boolean",
+      "default": false,
+      "description": "提醒触发时由小诺生成当日学习规划，写入 sys-hub「小诺晨报/规划-日期.md」（使用 LLM 会产生少量费用，默认关闭，按需开启）"
+    },
+    {
+      "key": "report_repo_name",
+      "label": "规划写入仓库",
+      "type": "string",
+      "default": "",
+      "description": "学习规划写入哪个仓库的「小诺晨报/」目录；留空=系统仓库 sys-hub（推荐），填仓库名则覆盖"
+    },
+    {
+      "key": "exam_date",
+      "label": "考试日期",
+      "type": "string",
+      "default": "",
+      "description": "备考冲刺（YYYY-MM-DD）：进入冲刺窗口后提醒升级为「距考试 N 天」，题目库一键开练变为考前清库（全部在库题，到期优先）。考过或留空则自动退出冲刺"
+    },
+    {
+      "key": "sprint_days",
+      "label": "冲刺窗口（天）",
+      "type": "number",
+      "default": 14,
+      "description": "考试日期前多少天进入冲刺模式"
+    }
+  ]
+}
